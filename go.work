@@ -1,0 +1,11 @@
+go 1.22.0
+
+use (
+	./pkg
+	./services/customer
+	./services/gateway
+	./services/notification
+	./services/order
+	./services/payment
+	./services/product
+)
