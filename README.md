@@ -36,6 +36,8 @@ gocommercex/
 ├── .gitignore
 ├── .golangci.yml
 ├── .githooks/
+├── docker-compose.yml
+├── .env.example
 ├── README.md
 ├── .github/
 ├── docs/
