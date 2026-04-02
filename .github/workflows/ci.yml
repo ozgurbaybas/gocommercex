@@ -1,0 +1,66 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - pkg
+          - services/customer
+          - services/product
+          - services/order
+          - services/payment
+          - services/notification
+          - services/gateway
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.module }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22.0"
+
+      - name: Setup Go workspace
+        run: go work sync
+        working-directory: .
+
+      - name: Check for packages
+        id: packages
+        run: |
+          packages="$(go list ./... 2>/dev/null || true)"
+          if [ -z "$packages" ]; then
+            echo "has_packages=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "has_packages=true" >> "$GITHUB_OUTPUT"
+
+      - name: Run tests
+        if: steps.packages.outputs.has_packages == 'true'
+        run: go test ./...
+
+      - name: Run vet
+        if: steps.packages.outputs.has_packages == 'true'
+        run: go vet ./...
+
+      - name: Run golangci-lint
+        if: steps.packages.outputs.has_packages == 'true'
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.59
+          working-directory: ${{ matrix.module }}
+          args: ./...

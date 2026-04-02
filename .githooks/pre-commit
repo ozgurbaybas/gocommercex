@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+MODULES=(
+  "pkg"
+  "services/customer"
+  "services/product"
+  "services/order"
+  "services/payment"
+  "services/notification"
+  "services/gateway"
+)
+
+echo "pre-commit: formatting repository"
+cd "$ROOT_DIR"
+gofmt -w .
+
+for module in "${MODULES[@]}"; do
+  MODULE_PATH="${ROOT_DIR}/${module}"
+
+  if [ ! -d "$MODULE_PATH" ]; then
+    continue
+  fi
+
+  echo "pre-commit: checking module ${module}"
+  cd "$MODULE_PATH"
+
+  packages="$(go list ./... 2>/dev/null || true)"
+  if [ -z "$packages" ]; then
+    echo "pre-commit: no packages in ${module}, skipping"
+    continue
+  fi
+
+  go test ./...
+  go vet ./...
+  golangci-lint run ./...
+done
+
+echo "pre-commit: all checks passed"

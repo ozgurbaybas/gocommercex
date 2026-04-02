@@ -34,6 +34,8 @@ gocommercex/
 ├── go.work
 ├── Makefile
 ├── .gitignore
+├── .golangci.yml
+├── .githooks/
 ├── README.md
 ├── .github/
 ├── docs/
